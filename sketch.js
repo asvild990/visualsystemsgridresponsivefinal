@@ -10,8 +10,9 @@ let cellW, cellH;
 let fontIndex = [];
 let frozen = [];
 let cellGraphics = [];
+let fullTextCanvases = []; // new: holds the full message in each font
 let message = "Visual\nSystems";
-let rippleDelay = 1800; // ms
+let rippleDelay = 1800;
 let gridVisible = true;
 
 function preload() {
@@ -25,6 +26,7 @@ function setup() {
   cellW = width / cols;
   cellH = height / rows;
 
+  // Init arrays
   for (let i = 0; i < cols; i++) {
     fontIndex[i] = [];
     frozen[i] = [];
@@ -32,17 +34,16 @@ function setup() {
     for (let j = 0; j < rows; j++) {
       fontIndex[i][j] = floor(random(fonts.length));
       frozen[i][j] = false;
-      cellGraphics[i][j] = createGraphics(cellW, cellH);
     }
   }
 
+  createFullTextCanvases(); // render message once per font
   renderGrid();
 
   document.getElementById("grid-toggle").addEventListener("click", () => {
     gridVisible = !gridVisible;
   });
 
-  // Trigger ripple cycle
   setInterval(() => {
     let i = floor(random(cols));
     let j = floor(random(rows));
@@ -52,7 +53,6 @@ function setup() {
 
 function draw() {
   background("#F3F3F3");
-
   for (let i = 0; i < cols; i++) {
     for (let j = 0; j < rows; j++) {
       image(cellGraphics[i][j], i * cellW, j * cellH, cellW, cellH);
@@ -66,39 +66,39 @@ function draw() {
   }
 }
 
-function renderGrid() {
-  let tempPG = createGraphics(width, height);
-  tempPG.background(0, 0);
-  tempPG.fill(0);
-  tempPG.textAlign(CENTER, CENTER);
-  tempPG.textSize(min(width, height) * 0.15);
-  tempPG.textLeading(tempPG.textSize() * 1.2);
-  tempPG.textFont(fonts[0]); // Default font to start
-  tempPG.text(message, width / 2, height / 2);
+function createFullTextCanvases() {
+  fullTextCanvases = [];
+  for (let f = 0; f < fonts.length; f++) {
+    let pg = createGraphics(width, height);
+    pg.background(0, 0);
+    pg.fill(0);
+    pg.textAlign(CENTER, CENTER);
+    pg.textFont(fonts[f]);
+    pg.textSize(min(width, height) * 0.15);
+    pg.textLeading(pg.textSize() * 1.2);
+    pg.text(message, width / 2, height / 2);
+    fullTextCanvases.push(pg);
+  }
+}
 
+function renderGrid() {
+  cellGraphics = [];
   for (let i = 0; i < cols; i++) {
+    cellGraphics[i] = [];
     for (let j = 0; j < rows; j++) {
-      updateCell(i, j, tempPG);
+      updateCell(i, j);
     }
   }
 }
 
-function updateCell(i, j, sourcePG = null) {
-  let font = fonts[fontIndex[i][j]];
-  let tempPG = sourcePG || createGraphics(width, height);
-  if (!sourcePG) {
-    tempPG.background(0, 0);
-    tempPG.fill(0);
-    tempPG.textAlign(CENTER, CENTER);
-    tempPG.textSize(min(width, height) * 0.15);
-    tempPG.textLeading(tempPG.textSize() * 1.2);
-    tempPG.textFont(font);
-    tempPG.text(message, width / 2, height / 2);
-  }
+function updateCell(i, j) {
+  let fontID = fontIndex[i][j];
+  let fullCanvas = fullTextCanvases[fontID];
 
-  let img = tempPG.get(i * cellW, j * cellH, cellW, cellH);
-  cellGraphics[i][j] = createGraphics(cellW, cellH);
-  cellGraphics[i][j].image(img, 0, 0);
+  let clipped = fullCanvas.get(i * cellW, j * cellH, cellW, cellH);
+  let pg = createGraphics(cellW, cellH);
+  pg.image(clipped, 0, 0);
+  cellGraphics[i][j] = pg;
 }
 
 function rippleFontChange(i, j) {
@@ -132,5 +132,6 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   cellW = width / cols;
   cellH = height / rows;
+  createFullTextCanvases();
   renderGrid();
 }
