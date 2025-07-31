@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visual Systems Grid</title>
+    <style>
+      body {
+        margin: 0;
+        background-color: #f3f3f3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      #grid-toggle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-family: sans-serif;
+        font-size: 14px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: black;
+        padding: 6px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="grid-toggle">grid</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="sketch.js"></script>
+  </body>
+</html>
